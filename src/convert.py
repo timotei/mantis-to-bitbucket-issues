@@ -119,7 +119,13 @@ class IssuesConverter:
         with open(self.args.input_xml) as inputXmlFile:
             with open(outputJsonPath, mode='w+') as outputJsonFile:
                 mantisRootNode = BeautifulSoup(inputXmlFile)
-                db = self.processXml(mantisRootNode, attachmentsOutputPath, bugAttachmentMappings)
+
+                db = defaultdict(list, {"meta": {"default_kind": "bug"}})
+                issueIds = self.processXml(db, mantisRootNode, attachmentsOutputPath, bugAttachmentMappings)
+                if self.args.bug_notes_file:
+                    bugsJson = self.getJsonObjectFromFile(self.args.bug_notes_file)
+                    self.processBugNotes(db, issueIds, bugsJson)
+
                 outputJsonFile.write(json.dumps(db, indent=4, sort_keys=True))
 
         with zipfile.ZipFile(self.args.output_zip, mode='w', compression=zipfile.ZIP_DEFLATED) as zipFile:
@@ -128,11 +134,10 @@ class IssuesConverter:
                 for file in files:
                     zipFile.write(os.path.join(root, file), os.path.join('attachments', file))
 
-    def processXml(self, mantisNode, attachmentsOutputPath, bugAttachmentMappings):
-        db = defaultdict(list, {"meta": {"default_kind": "bug"}})
-
+    def processXml(self, db, mantisNode, attachmentsOutputPath, bugAttachmentMappings):
         versions = set()
         components = set()
+        issueIds = set()
         for issueNode in mantisNode.find_all('issue'):
             version = self.stringOf(issueNode.version)
             component = self.stringOf(issueNode.category)
@@ -174,6 +179,8 @@ class IssuesConverter:
                 'kind': 'bug'
             }
 
+            issueIds.add(issueId)
+
             if parsedArgs.attachments_directory and bugAttachmentMappings.has_key(issueId):
                 if self.args.verbose:
                     print("Processing attachments for %s ..." % issueId)
@@ -201,7 +208,28 @@ class IssuesConverter:
 
         db['versions'] = [{"name": v} for v in versions]
         db['components'] = [{"name": c} for c in components]
-        return db
+
+        return issueIds
+
+    def processBugNotes(self, db, issueIds, bugNotes):
+        if self.args.verbose:
+            print("Processing bug notes ...")
+
+        for bugNote in bugNotes:
+            bugId = bugNote['bug_id']
+            if str(bugId) not in issueIds:
+                continue
+
+            comment = {
+                'content': bugNote['note'],
+                'created_on': self.transformDate(bugNote['date_submitted']),
+                'updated_on': self.transformDate(bugNote['last_modified']),
+                'id': bugNote['bugnote_text_id'],
+                'user': self.transformReporter(bugNote['username']),
+                'issue': bugId,
+            }
+            db['comments'].append(comment)
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
@@ -214,11 +242,16 @@ if __name__ == "__main__":
                         help='A JSON file with an array containing "bug_id":"filename" mappings.')
     parser.add_argument('--reporter-mapping-file',
                         help='A JSON file with an array containing "mantis_user_id":"bitbucket_user_id" mappings.')
+    parser.add_argument('--bug-notes-file',
+                        help='A JSON file containing the bug notes details.')
 
     parsedArgs = parser.parse_args()
 
     if not parsedArgs.attachments_directory or not parsedArgs.bug_attachments_file:
         print("*WARNING* No attachments directory or bug attachments file specified, will skip attachments processing.")
+
+    if not parsedArgs.bug_notes_file:
+        print("*WARNING* No bug-notes file specified, will skip bug notes processing.")
 
     converter = IssuesConverter(parsedArgs)
     converter.convert()

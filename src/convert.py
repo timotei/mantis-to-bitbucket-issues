@@ -207,7 +207,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('input_xml', help='Input file in XML format with the exported issues.')
     parser.add_argument('output_zip', help='Path where to generate the zip to be imported into Bitbucket.')
-    parser.add_argument('--verbose')
+    parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--attachments-directory', help='Folder that contains the exported attachments.')
     parser.add_argument('--default-reporter', help='Default reporter user for unresolved users.', default='')
     parser.add_argument('--bug-attachments-file',

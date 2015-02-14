@@ -106,7 +106,8 @@ class IssuesConverter:
         self.initialiseAttachmentsOutputDir(attachmentsOutputPath)
         dbJsonFileName = 'db-1.0.json'
         outputJsonPath = os.path.join(tempPath, dbJsonFileName)
-        print("Starting conversion using output path: %s ... " % tempPath)
+        if self.args.verbose:
+            print("Starting conversion using output path: %s ... " % tempPath)
 
         bugAttachmentMappings = defaultdict(list)
 
@@ -139,7 +140,8 @@ class IssuesConverter:
             issueContent = self.stringOf(issueNode.description)
             issueId = issueNode.id.string
 
-            print("Processing issue %s ..." % issueId)
+            if self.args.verbose:
+                print("Processing issue %s ..." % issueId)
 
             issueContent += '\n\n**Reproducibility:** %s' % issueNode.reproducibility.string
             if issueNode.steps_to_reproduce:
@@ -173,13 +175,15 @@ class IssuesConverter:
             }
 
             if parsedArgs.attachments_directory and bugAttachmentMappings.has_key(issueId):
-                print("Processing attachments for %s ..." % issueId)
+                if self.args.verbose:
+                    print("Processing attachments for %s ..." % issueId)
+
                 for filename in bugAttachmentMappings[issueId]:
                     sourceFile = os.path.join(parsedArgs.attachments_directory, filename)
                     targetFile = os.path.join(attachmentsOutputPath, filename)
 
                     if not os.path.exists(sourceFile):
-                        print("* WARNING * Attachment file %s does not exist" % sourceFile)
+                        print("*WARNING* Attachment file %s for bug %s does not exist" % (sourceFile, issueId))
                         continue
                     shutil.copyfile(sourceFile, targetFile)
 
@@ -203,6 +207,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('input_xml', help='Input file in XML format with the exported issues.')
     parser.add_argument('output_zip', help='Path where to generate the zip to be imported into Bitbucket.')
+    parser.add_argument('--verbose')
     parser.add_argument('--attachments-directory', help='Folder that contains the exported attachments.')
     parser.add_argument('--default-reporter', help='Default reporter user for unresolved users.', default='')
     parser.add_argument('--bug-attachments-file',
@@ -213,7 +218,7 @@ if __name__ == "__main__":
     parsedArgs = parser.parse_args()
 
     if not parsedArgs.attachments_directory or not parsedArgs.bug_attachments_file:
-        print("* WARNING * No attachments directory or bug attachments file specified, will skip attachments processing.")
+        print("*WARNING* No attachments directory or bug attachments file specified, will skip attachments processing.")
 
     converter = IssuesConverter(parsedArgs)
     converter.convert()

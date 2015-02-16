@@ -220,12 +220,19 @@ class IssuesConverter:
             if str(bugId) not in issueIds:
                 continue
 
+            mantisUsername = bugNote['username']
+            resolvedReporter = self.transformReporter(mantisUsername)
+            noteText = bugNote['note']
+
+            if resolvedReporter == self.args.default_reporter:
+                noteText = '**Original reporter: %s**\n\n%s' % (mantisUsername, noteText)
+
             comment = {
-                'content': bugNote['note'],
+                'content': noteText,
                 'created_on': self.transformDate(bugNote['date_submitted']),
                 'updated_on': self.transformDate(bugNote['last_modified']),
                 'id': bugNote['bugnote_text_id'],
-                'user': self.transformReporter(bugNote['username']),
+                'user': resolvedReporter,
                 'issue': bugId,
             }
             db['comments'].append(comment)

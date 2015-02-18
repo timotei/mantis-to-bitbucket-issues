@@ -14,18 +14,18 @@ The format of the file is:
     [
 	{
 		"bug_id" : 8,
-		"filename" : "config.log"
+		"diskfile" : "config.log"
 	},
 	{
 		"bug_id" : 17,
-		"filename" : "screenshots.zip"
+		"diskfile" : "screenshots.zip"
 	}
 	]
 ```
 
 Such file can be retrieved by executing the following SQL command against the Mantis database:
 ```
-SELECT bug_id, filename FROM mantis_bug_file_table;
+SELECT bug_id, diskfile FROM mantis_bug_file_table WHERE filename <> '';
 ```
 
 ## Reporters mapping file

@@ -114,7 +114,7 @@ class IssuesConverter:
         if self.args.bug_attachments_file:
             jsonObject = self.getJsonObjectFromFile(self.args.bug_attachments_file)
             for bugJson in jsonObject:
-                bugAttachmentMappings[str(bugJson['bug_id'])].append(bugJson['filename'])
+                bugAttachmentMappings[str(bugJson['bug_id'])].append(bugJson['diskfile'])
 
         with open(self.args.input_xml) as inputXmlFile:
             with open(outputJsonPath, mode='w+') as outputJsonFile:

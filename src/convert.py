@@ -138,10 +138,13 @@ class IssuesConverter:
         versions = set()
         components = set()
         issueIds = set()
+        unresolvedReporters = set()
+
         for issueNode in mantisNode.find_all('issue'):
             version = self.stringOf(issueNode.version)
             component = self.stringOf(issueNode.category)
-            reporter = self.transformReporter(issueNode.reporter.string)
+            mantisReporter = issueNode.reporter.string
+            reporter = self.transformReporter(mantisReporter)
             issueContent = self.stringOf(issueNode.description)
             issueId = issueNode.id.string
 
@@ -159,8 +162,8 @@ class IssuesConverter:
                                  self.stringOf(issueNode.platform))
 
             if reporter == self.args.default_reporter:
-                issueContent = '**Automatic migration. Original reporter: "%s"**\n\n%s' % (
-                    issueNode.reporter.string, issueContent)
+                issueContent = '**Automatic migration. Original reporter: "%s"**\n\n%s' % (mantisReporter, issueContent)
+                unresolvedReporters.add(mantisReporter)
 
             issue = {
                 'id': issueId,
@@ -208,6 +211,9 @@ class IssuesConverter:
 
         db['versions'] = [{"name": v} for v in versions]
         db['components'] = [{"name": c} for c in components]
+
+        print("*WARNING* The following reporters were not resolved: \n%s"
+              % '\n'.join(r for r in sorted(unresolvedReporters)))
 
         return issueIds
 

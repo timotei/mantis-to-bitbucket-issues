@@ -36,8 +36,9 @@ class IssuesConverter:
         self.reporters = self.createReporterMappings()
 
     def transformReporter(self, mantisReporter):
-        if mantisReporter in self.reporters:
-            return self.reporters[mantisReporter]
+        mantisReporterLowercase = mantisReporter.lower()
+        if mantisReporterLowercase in self.reporters:
+            return self.reporters[mantisReporterLowercase]
 
         return self.args.default_reporter
 
@@ -47,7 +48,7 @@ class IssuesConverter:
 
         for key in reportersJson:
             pair = key.items()[0]
-            reporters[pair[0]] = pair[1]
+            reporters[pair[0].lower()] = pair[1]
 
         return reporters
 

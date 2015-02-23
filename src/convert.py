@@ -137,12 +137,14 @@ class IssuesConverter:
 
     def processXml(self, db, mantisNode, attachmentsOutputPath, bugAttachmentMappings):
         versions = set()
+        milestones = set()
         components = set()
         issueIds = set()
         unresolvedReporters = set()
 
         for issueNode in mantisNode.find_all('issue'):
             version = self.stringOf(issueNode.version)
+            milestone = self.stringOf(issueNode.target_version)
             component = self.stringOf(issueNode.category)
             mantisReporter = issueNode.reporter.string
             reporter = self.transformReporter(mantisReporter)
@@ -176,6 +178,7 @@ class IssuesConverter:
                 'updated_on': self.transformDate(issueNode.last_updated.string),
                 'content_updated_on': self.transformDate(issueNode.last_updated.string),
                 'version': version,
+                'milestone': milestone,
                 'title': issueNode.summary.string,
                 'content': issueContent,
 
@@ -206,11 +209,14 @@ class IssuesConverter:
 
             if version:
                 versions.add(version)
+            if milestone:
+                milestones.add(milestone)
             if component:
                 components.add(component)
             db['issues'].append(issue)
 
         db['versions'] = [{"name": v} for v in versions]
+        db['milestones'] = [{"name": m} for m in milestones]
         db['components'] = [{"name": c} for c in components]
 
         print("*WARNING* The following reporters were not resolved: \n%s"

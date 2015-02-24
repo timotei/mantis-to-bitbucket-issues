@@ -86,6 +86,16 @@ class IssuesConverter:
         return statuses[mantisStatus]
 
     @staticmethod
+    def severityToKind(severity):
+        if severity == 'feature' or severity == 'text':
+            return 'task'
+
+        if severity == 'tweak':
+            return 'enhancement'
+
+        return 'bug'
+
+    @staticmethod
     def transformDate(mantisDate):
         return datetime.fromtimestamp(float(mantisDate)).isoformat()
 
@@ -151,6 +161,7 @@ class IssuesConverter:
             handler = self.transformUser(self.stringOf(issueNode.handler))
             issueContent = self.stringOf(issueNode.description)
             issueId = issueNode.id.string
+            kind = self.severityToKind(issueNode.severity)
 
             if self.args.verbose:
                 print("Processing issue %s ..." % issueId)
@@ -185,7 +196,7 @@ class IssuesConverter:
                 'content': issueContent,
 
                 # BB required
-                'kind': 'bug'
+                'kind': kind
             }
 
             issueIds.add(issueId)

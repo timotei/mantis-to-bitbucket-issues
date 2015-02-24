@@ -175,7 +175,7 @@ class IssuesConverter:
                 'assignee': handler,
                 'priority': self.transformPriority(issueNode.priority.string),
                 'status': self.transformStatus(issueNode.status.string),
-                'category': component,
+                'component': component,
                 'created_on': self.transformDate(issueNode.date_submitted.string),
                 'updated_on': self.transformDate(issueNode.last_updated.string),
                 'content_updated_on': self.transformDate(issueNode.last_updated.string),

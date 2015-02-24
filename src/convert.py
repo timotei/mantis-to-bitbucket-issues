@@ -59,18 +59,19 @@ class IssuesConverter:
             return json.loads(jsonData)
 
     @staticmethod
-    def transformPriority(mantisPriority):
-        # TODO: use severity?
+    def transformMantisSeverity(mantisSeverity):
         priorities = {
-            "none": "trivial",
-            "low": "minor",
-            "normal": "major",
-            "high": "critical",
-            "urgent": "critical",
-            "immediate": "blocker"
+            "feature": "trivial",
+            "trivial": "trivial",
+            "text": "trivial",
+            "tweak": "trivial",
+            "minor": "minor",
+            "major": "major",
+            "crash": "critical",
+            "block": "blocker"
         }
 
-        return priorities[mantisPriority]
+        return priorities[mantisSeverity]
 
     @staticmethod
     def transformStatus(mantisStatus):
@@ -161,7 +162,7 @@ class IssuesConverter:
             handler = self.transformUser(self.stringOf(issueNode.handler))
             issueContent = self.stringOf(issueNode.description)
             issueId = issueNode.id.string
-            kind = self.severityToKind(issueNode.severity)
+            kind = self.severityToKind(issueNode.severity.string)
 
             if self.args.verbose:
                 print("Processing issue %s ..." % issueId)
@@ -184,7 +185,7 @@ class IssuesConverter:
                 'id': issueId,
                 'reporter': reporter,
                 'assignee': handler,
-                'priority': self.transformPriority(issueNode.priority.string),
+                'priority': self.transformMantisSeverity(issueNode.severity.string),
                 'status': self.transformStatus(issueNode.status.string),
                 'component': component,
                 'created_on': self.transformDate(issueNode.date_submitted.string),

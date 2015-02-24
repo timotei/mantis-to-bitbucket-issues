@@ -33,24 +33,24 @@ from bs4 import BeautifulSoup
 class IssuesConverter:
     def __init__(self, args):
         self.args = args
-        self.reporters = self.createReporterMappings()
+        self.users = self.createUserMappings()
 
-    def transformReporter(self, mantisReporter):
-        mantisReporterLowercase = mantisReporter.lower()
-        if mantisReporterLowercase in self.reporters:
-            return self.reporters[mantisReporterLowercase]
+    def transformUser(self, mantisUser):
+        mantisReporterLowercase = mantisUser.lower()
+        if mantisReporterLowercase in self.users:
+            return self.users[mantisReporterLowercase]
 
-        return self.args.default_reporter
+        return self.args.default_user
 
-    def createReporterMappings(self):
-        reporters = {}
-        reportersJson = self.getJsonObjectFromFile(self.args.reporter_mapping_file)
+    def createUserMappings(self):
+        users = {}
+        usersJson = self.getJsonObjectFromFile(self.args.user_mapping_file)
 
-        for key in reportersJson:
+        for key in usersJson:
             pair = key.items()[0]
-            reporters[pair[0].lower()] = pair[1]
+            users[pair[0].lower()] = pair[1]
 
-        return reporters
+        return users
 
     @staticmethod
     def getJsonObjectFromFile(path):
@@ -147,7 +147,7 @@ class IssuesConverter:
             milestone = self.stringOf(issueNode.target_version)
             component = self.stringOf(issueNode.category)
             mantisReporter = issueNode.reporter.string
-            reporter = self.transformReporter(mantisReporter)
+            reporter = self.transformUser(mantisReporter)
             issueContent = self.stringOf(issueNode.description)
             issueId = issueNode.id.string
 
@@ -164,7 +164,7 @@ class IssuesConverter:
                                 (self.stringOf(issueNode.os), self.stringOf(issueNode.os_build),
                                  self.stringOf(issueNode.platform))
 
-            if reporter == self.args.default_reporter:
+            if reporter == self.args.default_user:
                 issueContent = '**Automatic migration. Original reporter: "%s"**\n\n%s' % (mantisReporter, issueContent)
                 unresolvedReporters.add(mantisReporter)
 
@@ -234,10 +234,10 @@ class IssuesConverter:
                 continue
 
             mantisUsername = bugNote['username']
-            resolvedReporter = self.transformReporter(mantisUsername)
+            resolvedReporter = self.transformUser(mantisUsername)
             noteText = bugNote['note']
 
-            if resolvedReporter == self.args.default_reporter:
+            if resolvedReporter == self.args.default_user:
                 noteText = '**Original reporter: %s**\n\n%s' % (mantisUsername, noteText)
 
             comment = {
@@ -257,10 +257,10 @@ if __name__ == "__main__":
     parser.add_argument('output_zip', help='Path where to generate the zip to be imported into Bitbucket.')
     parser.add_argument('--verbose', action='store_true')
     parser.add_argument('--attachments-directory', help='Folder that contains the exported attachments.')
-    parser.add_argument('--default-reporter', help='Default reporter user for unresolved users.', default='')
+    parser.add_argument('--default-user', help='Default user for unresolved users.', default='')
     parser.add_argument('--bug-attachments-file',
                         help='A JSON file with an array containing "bug_id":"filename" mappings.')
-    parser.add_argument('--reporter-mapping-file',
+    parser.add_argument('--user-mapping-file',
                         help='A JSON file with an array containing "mantis_user_id":"bitbucket_user_id" mappings.')
     parser.add_argument('--bug-notes-file',
                         help='A JSON file containing the bug notes details.')

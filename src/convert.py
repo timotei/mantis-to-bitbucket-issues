@@ -148,6 +148,7 @@ class IssuesConverter:
             component = self.stringOf(issueNode.category)
             mantisReporter = issueNode.reporter.string
             reporter = self.transformUser(mantisReporter)
+            handler = self.transformUser(self.stringOf(issueNode.handler))
             issueContent = self.stringOf(issueNode.description)
             issueId = issueNode.id.string
 
@@ -171,6 +172,7 @@ class IssuesConverter:
             issue = {
                 'id': issueId,
                 'reporter': reporter,
+                'assignee': handler,
                 'priority': self.transformPriority(issueNode.priority.string),
                 'status': self.transformStatus(issueNode.status.string),
                 'category': component,

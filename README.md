@@ -55,7 +55,7 @@ The format of the file is:
         "username": "mantis_user"
     }
 ]
-````
+```
 
 Such file can be retrieved by executing the following SQL command against the Mantis database:
 ```

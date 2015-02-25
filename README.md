@@ -36,7 +36,8 @@ The format of the file is:
 
 ## Bugnotes file
 The format of the file is:
-```[
+```
+[
     {
         "bug_id": 3,
         "bugnote_text_id": 1,

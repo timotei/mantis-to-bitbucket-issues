@@ -88,13 +88,17 @@ class IssuesConverter:
 
     @staticmethod
     def severityToKind(severity):
-        if severity == 'feature' or severity == 'text':
-            return 'task'
+        severities = {
+            'block': 'bug',
+            'crash': 'bug',
+            'major': 'bug',
+            'minor': 'bug',
+            'tweak': 'enhancement',
+            'text': 'bug',
+            'feature': 'task'
+        }
 
-        if severity == 'tweak':
-            return 'enhancement'
-
-        return 'bug'
+        return severities[severity]
 
     @staticmethod
     def transformDate(mantisDate):
